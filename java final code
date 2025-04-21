@@ -1,0 +1,470 @@
+import java.util.Random;
+import java.util.Scanner;
+
+// Node class for Linked List
+class Node<T> {
+    T data;
+    Node<T> next;
+
+    Node(T data) {
+        this.data = data;
+        this.next = null;
+    }
+}
+
+// BookingTicket class
+class BookingTicket {
+    private static final String[] BERTH_TYPES = {"Lower Berth", "Middle Berth", "Upper Berth", "Side Lower Berth", "Side Upper Berth"};
+    private int ticketId;
+    private String destination;
+    private boolean isAvailable;
+    private String passengerName;
+    private Integer passengerAge;
+    private String berth;
+
+    public BookingTicket(int ticketId, String destination) {
+        this.ticketId = ticketId;
+        this.destination = destination;
+        this.isAvailable = true;
+        this.passengerName = null;
+        this.passengerAge = null;
+        this.berth = null;
+    }
+
+    public boolean book(String passengerName, int passengerAge) {
+        if (isAvailable) {
+            this.isAvailable = false;
+            this.passengerName = passengerName;
+            this.passengerAge = passengerAge;
+            this.berth = BERTH_TYPES[new Random().nextInt(BERTH_TYPES.length)];
+            return true;
+        }
+        return false;
+    }
+
+    public void cancel() {
+        this.isAvailable = true;
+        this.passengerName = null;
+        this.passengerAge = null;
+        this.berth = null;
+    }
+
+    // Getters
+    public int getTicketId() { return ticketId; }
+    public String getDestination() { return destination; }
+    public boolean isAvailable() { return isAvailable; }
+    public String getPassengerName() { return passengerName; }
+    public Integer getPassengerAge() { return passengerAge; }
+    public String getBerth() { return berth; }
+}
+
+// SupportTicket class
+class SupportTicket {
+    private int ticketId;
+    private String customerName;
+    private String issueDescription;
+    private boolean resolved;
+    private String resolutionNotes;
+
+    public SupportTicket(int ticketId, String customerName, String issueDescription) {
+        this.ticketId = ticketId;
+        this.customerName = customerName;
+        this.issueDescription = issueDescription;
+        this.resolved = false;
+        this.resolutionNotes = "";
+    }
+
+    // Getters and setters
+    public int getTicketId() { return ticketId; }
+    public String getCustomerName() { return customerName; }
+    public String getIssueDescription() { return issueDescription; }
+    public boolean isResolved() { return resolved; }
+    public String getResolutionNotes() { return resolutionNotes; }
+    public void setResolved(boolean resolved) { this.resolved = resolved; }
+    public void setResolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; }
+}
+
+// User class
+class User {
+    private String username;
+    private String password;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+}
+
+// CustomerSupportBookingSystem class
+class CustomerSupportBookingSystem {
+    private Node<SupportTicket> supportTickets;
+    private Node<BookingTicket> bookingTickets;
+    private Node<User> users;
+    private int supportTicketCounter;
+    private int bookingTicketCounter;
+    private final String adminPassword;
+
+    public CustomerSupportBookingSystem() {
+        this.supportTickets = null;
+        this.bookingTickets = null;
+        this.users = null;
+        this.supportTicketCounter = 1000;
+        this.bookingTicketCounter = 100;
+        this.adminPassword = "admin123";
+
+        // Initialize sample booking tickets
+        BookingTicket[] sampleTickets = {
+            new BookingTicket(101, "New York"),
+            new BookingTicket(102, "Los Angeles"),
+            new BookingTicket(103, "Chicago"),
+            new BookingTicket(104, "Houston"),
+            new BookingTicket(105, "San Francisco")
+        };
+        for (BookingTicket ticket : sampleTickets) {
+            addBookingTicket(ticket);
+        }
+
+        // Initialize sample users
+        User[] sampleUsers = {
+            new User("alice", "pass123"),
+            new User("bob", "pass456")
+        };
+        for (User user : sampleUsers) {
+            addUser(user);
+        }
+    }
+
+    public void addSupportTicket(String customerName, String issueDescription) {
+        SupportTicket newTicket = new SupportTicket(supportTicketCounter++, customerName, issueDescription);
+        Node<SupportTicket> newNode = new Node<>(newTicket);
+        if (supportTickets == null) {
+            supportTickets = newNode;
+        } else {
+            Node<SupportTicket> current = supportTickets;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+        System.out.println("Support Ticket " + newTicket.getTicketId() + " submitted successfully and forwarded to admin.");
+    }
+
+    public void resolveSupportTicket(int ticketId, String resolutionNotes) {
+        Node<SupportTicket> current = supportTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                if (current.data.isResolved()) {
+                    System.out.println("Support Ticket " + ticketId + " is already resolved.");
+                } else {
+                    current.data.setResolved(true);
+                    current.data.setResolutionNotes(resolutionNotes);
+                    System.out.println("Support Ticket " + ticketId + " marked as solved with notes: " + resolutionNotes);
+                }
+                return;
+            }
+            current = current.next;
+        }
+        System.out.println("Support Ticket " + ticketId + " not found.");
+    }
+
+    public void displaySupportTicket(int ticketId) {
+        Node<SupportTicket> current = supportTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                SupportTicket ticket = current.data;
+                System.out.println("Support Ticket ID: " + ticket.getTicketId());
+                System.out.println("Customer Name: " + ticket.getCustomerName());
+                System.out.println("Issue Description: " + ticket.getIssueDescription());
+                System.out.println("Status: " + (ticket.isResolved() ? "Solved" : "Pending"));
+                if (ticket.isResolved()) {
+                    System.out.println("Resolution Notes: " + ticket.getResolutionNotes());
+                }
+                return;
+            }
+            current = current.next;
+        }
+        System.out.println("Support Ticket " + ticketId + " not found.");
+    }
+
+    public void displayUnresolvedSupportTickets() {
+        if (supportTickets == null) {
+            System.out.println("No support tickets available.");
+            return;
+        }
+        Node<SupportTicket> current = supportTickets;
+        boolean found = false;
+        System.out.println("Pending Support Tickets:");
+        while (current != null) {
+            if (!current.data.isResolved()) {
+                SupportTicket ticket = current.data;
+                System.out.println("Ticket ID: " + ticket.getTicketId() + ", Customer: " + ticket.getCustomerName() +
+                        ", Issue: " + ticket.getIssueDescription());
+                found = true;
+            }
+            current = current.next;
+        }
+        if (!found) {
+            System.out.println("No pending support tickets.");
+        }
+    }
+
+    public void displayAllSupportTickets() {
+        if (supportTickets == null) {
+            System.out.println("No support tickets available.");
+            return;
+        }
+        Node<SupportTicket> current = supportTickets;
+        System.out.println("All Support Tickets:");
+        while (current != null) {
+            SupportTicket ticket = current.data;
+            String status = ticket.isResolved() ? "Solved" : "Pending";
+            System.out.println("Ticket ID: " + ticket.getTicketId() + ", Customer: " + ticket.getCustomerName() +
+                    ", Issue: " + ticket.getIssueDescription() + ", Status: " + status);
+            if (ticket.isResolved()) {
+                System.out.println("  Resolution Notes: " + ticket.getResolutionNotes());
+            }
+            current = current.next;
+        }
+    }
+
+    public void addBookingTicket(BookingTicket ticket) {
+        Node<BookingTicket> newNode = new Node<>(ticket);
+        if (bookingTickets == null) {
+            bookingTickets = newNode;
+        } else {
+            Node<BookingTicket> current = bookingTickets;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    public void displayAvailableBookingTickets() {
+        Node<BookingTicket> current = bookingTickets;
+        boolean hasAvailable = false;
+        System.out.println("\nAvailable Booking Tickets:");
+        while (current != null) {
+            if (current.data.isAvailable()) {
+                System.out.println("🔹 Ticket " + current.data.getTicketId() + ": " + current.data.getDestination());
+                hasAvailable = true;
+            }
+            current = current.next;
+        }
+        if (!hasAvailable) {
+            System.out.println("No booking tickets available.");
+        }
+    }
+
+    public void bookBookingTicket(int ticketId, String passengerName, int passengerAge) {
+        Node<BookingTicket> current = bookingTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                if (current.data.book(passengerName, passengerAge)) {
+                    System.out.println("Booking Ticket " + ticketId + " to " + current.data.getDestination() +
+                            " booked for " + passengerName + ", Age: " + passengerAge + "!");
+                    System.out.println("Berth Allocated: " + current.data.getBerth());
+                } else {
+                    System.out.println("Booking Ticket " + ticketId + " is already booked.");
+                }
+                return;
+            }
+            current = current.next;
+        }
+        System.out.println("Invalid Booking Ticket ID.");
+    }
+
+    public void cancelBookingTicket(int ticketId) {
+        Node<BookingTicket> current = bookingTickets;
+        Scanner scanner = new Scanner(System.in);
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                if (!current.data.isAvailable()) {
+                    System.out.println("Booking Ticket was booked by " + current.data.getPassengerName() +
+                            ", Age: " + current.data.getPassengerAge() + ", Berth: " + current.data.getBerth() + ".");
+                    System.out.print("Do you want to cancel it? (yes/no): ");
+                    String confirm = scanner.nextLine().trim().toLowerCase();
+                    if (confirm.equals("yes")) {
+                        current.data.cancel();
+                        System.out.println("Booking Ticket " + ticketId + " canceled and is now available.");
+                    } else {
+                        System.out.println("Booking Ticket cancellation aborted.");
+                    }
+                } else {
+                    System.out.println("Booking Ticket " + ticketId + " is already available.");
+                }
+                return;
+            }
+            current = current.next;
+        }
+        System.out.println("Invalid Booking Ticket ID.");
+    }
+
+    public void addUser(User user) {
+        Node<User> newNode = new Node<>(user);
+        if (users == null) {
+            users = newNode;
+        } else {
+            Node<User> current = users;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    public boolean userLogin(String username, String password) {
+        Node<User> current = users;
+        while (current != null) {
+            if (current.data.getUsername().equals(username) && current.data.getPassword().equals(password)) {
+                return true;
+            }
+            current = current.next;
+        }
+        return false;
+    }
+
+    public boolean adminLogin(String password) {
+        return this.adminPassword.equals(password);
+    }
+}
+
+// Main class
+public class Main {
+    public static void main(String[] args) {
+        CustomerSupportBookingSystem system = new CustomerSupportBookingSystem();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\nCustomer Support and Ticket Booking System");
+            System.out.println("1. User Login");
+            System.out.println("2. Admin Login");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice (1-3): ");
+            String choice = scanner.nextLine();
+
+            if (choice.equals("1")) {
+                System.out.print("Enter username: ");
+                String username = scanner.nextLine();
+                System.out.print("Enter password: ");
+                String password = scanner.nextLine();
+                if (system.userLogin(username, password)) {
+                    while (true) {
+                        System.out.println("\nUser Interface");
+                        System.out.println("1. Report a Problem");
+                        System.out.println("2. View Available Booking Tickets");
+                        System.out.println("3. Book a Booking Ticket");
+                        System.out.println("4. Cancel a Booking Ticket");
+                        System.out.println("5. Logout");
+                        System.out.print("Enter your choice (1-5): ");
+                        String userChoice = scanner.nextLine();
+
+                        if (userChoice.equals("1")) {
+                            System.out.println("\nAre you facing any problem? Enter here:");
+                            System.out.print("Enter your name: ");
+                            String customerName = scanner.nextLine();
+                            System.out.print("Describe your problem: ");
+                            String issueDescription = scanner.nextLine();
+                            system.addSupportTicket(customerName, issueDescription);
+                        } else if (userChoice.equals("2")) {
+                            system.displayAvailableBookingTickets();
+                        } else if (userChoice.equals("3")) {
+                            system.displayAvailableBookingTickets();
+                            try {
+                                System.out.print("Enter the Booking Ticket ID to book: ");
+                                int ticketId = Integer.parseInt(scanner.nextLine());
+                                System.out.print("Enter your name: ");
+                                String passengerName = scanner.nextLine();
+                                System.out.print("Enter your age: ");
+                                int passengerAge = Integer.parseInt(scanner.nextLine());
+                                system.bookBookingTicket(ticketId, passengerName, passengerAge);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Please enter valid inputs.");
+                            }
+                        } else if (userChoice.equals("4")) {
+                            try {
+                                System.out.print("Enter the Booking Ticket ID to cancel: ");
+                                int ticketId = Integer.parseInt(scanner.nextLine());
+                                system.cancelBookingTicket(ticketId);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Please enter a valid ticket ID.");
+                            }
+                        } else if (userChoice.equals("5")) {
+                            System.out.println("Logging out of user interface.");
+                            break;
+                        } else {
+                            System.out.println("Invalid choice. Please try again.");
+                        }
+                    }
+                } else {
+                    System.out.println("Incorrect username or password. Access denied.");
+                }
+            } else if (choice.equals("2")) {
+                System.out.print("Enter admin password: ");
+                String password = scanner.nextLine();
+                if (system.adminLogin(password)) {
+                    while (true) {
+                        System.out.println("\nAdmin Interface");
+                        System.out.println("1. View Pending Support Tickets");
+                        System.out.println("2. View All Support Tickets");
+                        System.out.println("3. Resolve Support Ticket");
+                        System.out.println("4. View Support Ticket by ID");
+                        System.out.println("5. View Available Booking Tickets");
+                        System.out.println("6. Add New Booking Ticket");
+                        System.out.println("7. Logout");
+                        System.out.print("Enter your choice (1-7): ");
+                        String adminChoice = scanner.nextLine();
+
+                        if (adminChoice.equals("1")) {
+                            system.displayUnresolvedSupportTickets();
+                        } else if (adminChoice.equals("2")) {
+                            system.displayAllSupportTickets();
+                        } else if (adminChoice.equals("3")) {
+                            try {
+                                System.out.print("Enter Support Ticket ID to resolve: ");
+                                int ticketId = Integer.parseInt(scanner.nextLine());
+                                System.out.print("Enter resolution notes: ");
+                                String resolutionNotes = scanner.nextLine();
+                                system.resolveSupportTicket(ticketId, resolutionNotes);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Please enter a valid ticket ID.");
+                            }
+                        } else if (adminChoice.equals("4")) {
+                            try {
+                                System.out.print("Enter Support Ticket ID to display: ");
+                                int ticketId = Integer.parseInt(scanner.nextLine());
+                                system.displaySupportTicket(ticketId);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Please enter a valid ticket ID.");
+                            }
+                        } else if (adminChoice.equals("5")) {
+                            system.displayAvailableBookingTickets();
+                        } else if (adminChoice.equals("6")) {
+                            System.out.print("Enter destination for new booking ticket: ");
+                            String destination = scanner.nextLine();
+                            BookingTicket newTicket = new BookingTicket(system.bookingTicketCounter++, destination);
+                            system.addBookingTicket(newTicket);
+                            System.out.println("Booking Ticket " + newTicket.getTicketId() + " added successfully.");
+                        } else if (adminChoice.equals("7")) {
+                            System.out.println("Logging out of admin interface.");
+                            break;
+                        } else {
+                            System.out.println("Invalid choice. Please try again.");
+                        }
+                    }
+                } else {
+                    System.out.println("Incorrect password. Access denied.");
+                }
+            } else if (choice.equals("3")) {
+                System.out.println("Exiting Customer Support and Ticket Booking System.");
+                break;
+            } else {
+                System.out.println("Invalid choice. Please try again.");
+            }
+        }
+        scanner.close();
+    }
+}

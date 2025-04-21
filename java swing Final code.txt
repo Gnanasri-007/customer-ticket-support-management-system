@@ -1,0 +1,628 @@
+import java.util.Random;
+import javax.swing.*;
+import java.awt.*;
+
+// Node class for Linked List
+class Node<T> {
+    T data;
+    Node<T> next;
+
+    Node(T data) {
+        this.data = data;
+        this.next = null;
+    }
+}
+
+// BookingTicket class
+class BookingTicket {
+    private static final String[] BERTH_TYPES = {"Lower Berth", "Middle Berth", "Upper Berth", "Side Lower Berth", "Side Upper Berth"};
+    private int ticketId;
+    private String destination;
+    private boolean isAvailable;
+    private String passengerName;
+    private Integer passengerAge;
+    private String berth;
+
+    public BookingTicket(int ticketId, String destination) {
+        this.ticketId = ticketId;
+        this.destination = destination;
+        this.isAvailable = true;
+        this.passengerName = null;
+        this.passengerAge = null;
+        this.berth = null;
+    }
+
+    public boolean book(String passengerName, int passengerAge) {
+        if (isAvailable) {
+            this.isAvailable = false;
+            this.passengerName = passengerName;
+            this.passengerAge = passengerAge;
+            this.berth = BERTH_TYPES[new Random().nextInt(BERTH_TYPES.length)];
+            return true;
+        }
+        return false;
+    }
+
+    public void cancel() {
+        this.isAvailable = true;
+        this.passengerName = null;
+        this.passengerAge = null;
+        this.berth = null;
+    }
+
+    // Getters
+    public int getTicketId() { return ticketId; }
+    public String getDestination() { return destination; }
+    public boolean isAvailable() { return isAvailable; }
+    public String getPassengerName() { return passengerName; }
+    public Integer getPassengerAge() { return passengerAge; }
+    public String getBerth() { return berth; }
+}
+
+// SupportTicket class
+class SupportTicket {
+    private int ticketId;
+    private String customerName;
+    private String issueDescription;
+    private boolean resolved;
+    private String resolutionNotes;
+
+    public SupportTicket(int ticketId, String customerName, String issueDescription) {
+        this.ticketId = ticketId;
+        this.customerName = customerName;
+        this.issueDescription = issueDescription;
+        this.resolved = false;
+        this.resolutionNotes = "";
+    }
+
+    // Getters and setters
+    public int getTicketId() { return ticketId; }
+    public String getCustomerName() { return customerName; }
+    public String getIssueDescription() { return issueDescription; }
+    public boolean isResolved() { return resolved; }
+    public String getResolutionNotes() { return resolutionNotes; }
+    public void setResolved(boolean resolved) { this.resolved = resolved; }
+    public void setResolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; }
+}
+
+// User class
+class User {
+    private String username;
+    private String password;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+}
+
+// CustomerSupportBookingSystem class
+class CustomerSupportBookingSystem {
+    private Node<SupportTicket> supportTickets;
+    private Node<BookingTicket> bookingTickets;
+    private Node<User> users;
+    private int supportTicketCounter;
+    private int bookingTicketCounter;
+    private final String adminPassword;
+
+    public CustomerSupportBookingSystem() {
+        this.supportTickets = null;
+        this.bookingTickets = null;
+        this.users = null;
+        this.supportTicketCounter = 1000;
+        this.bookingTicketCounter = 100;
+        this.adminPassword = "admin123";
+
+        // Initialize sample booking tickets
+        BookingTicket[] sampleTickets = {
+                new BookingTicket(101, "New York"),
+                new BookingTicket(102, "Los Angeles"),
+                new BookingTicket(103, "Chicago"),
+                new BookingTicket(104, "Houston"),
+                new BookingTicket(105, "San Francisco")
+        };
+        for (BookingTicket ticket : sampleTickets) {
+            addBookingTicket(ticket);
+        }
+
+        // Initialize sample users
+        User[] sampleUsers = {
+                new User("Mahesh", "123"),
+                new User("gnanasri", "456"),
+                new User("charith", "678"),
+                new User("rohin", "8910")
+        };
+        for (User user : sampleUsers) {
+            addUser(user);
+        }
+    }
+
+    public void addSupportTicket(String customerName, String issueDescription) {
+        SupportTicket newTicket = new SupportTicket(supportTicketCounter++, customerName, issueDescription);
+        Node<SupportTicket> newNode = new Node<>(newTicket);
+        if (supportTickets == null) {
+            supportTickets = newNode;
+        } else {
+            Node<SupportTicket> current = supportTickets;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    public void resolveSupportTicket(int ticketId, String resolutionNotes) {
+        Node<SupportTicket> current = supportTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                if (current.data.isResolved()) {
+                    return;
+                } else {
+                    current.data.setResolved(true);
+                    current.data.setResolutionNotes(resolutionNotes);
+                }
+                return;
+            }
+            current = current.next;
+        }
+    }
+
+    public String displaySupportTicket(int ticketId) {
+        Node<SupportTicket> current = supportTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                SupportTicket ticket = current.data;
+                return "Support Ticket ID: " + ticket.getTicketId() + "\n" +
+                        "Customer Name: " + ticket.getCustomerName() + "\n" +
+                        "Issue Description: " + ticket.getIssueDescription() + "\n" +
+                        "Status: " + (ticket.isResolved() ? "Solved" : "Pending") + "\n" +
+                        (ticket.isResolved() ? "Resolution Notes: " + ticket.getResolutionNotes() : "");
+            }
+            current = current.next;
+        }
+        return "Support Ticket " + ticketId + " not found.";
+    }
+
+    public String displayUnresolvedSupportTickets() {
+        if (supportTickets == null) {
+            return "No support tickets available.";
+        }
+        Node<SupportTicket> current = supportTickets;
+        StringBuilder result = new StringBuilder("Pending Support Tickets:\n");
+        boolean found = false;
+        while (current != null) {
+            if (!current.data.isResolved()) {
+                SupportTicket ticket = current.data;
+                result.append("Ticket ID: ").append(ticket.getTicketId())
+                        .append(", Customer: ").append(ticket.getCustomerName())
+                        .append(", Issue: ").append(ticket.getIssueDescription()).append("\n");
+                found = true;
+            }
+            current = current.next;
+        }
+        if (!found) {
+            return "No pending support tickets.";
+        }
+        return result.toString();
+    }
+
+    public String displayAllSupportTickets() {
+        if (supportTickets == null) {
+            return "No support tickets available.";
+        }
+        Node<SupportTicket> current = supportTickets;
+        StringBuilder result = new StringBuilder("All Support Tickets:\n");
+        while (current != null) {
+            SupportTicket ticket = current.data;
+            String status = ticket.isResolved() ? "Solved" : "Pending";
+            result.append("Ticket ID: ").append(ticket.getTicketId())
+                    .append(", Customer: ").append(ticket.getCustomerName())
+                    .append(", Issue: ").append(ticket.getIssueDescription())
+                    .append(", Status: ").append(status).append("\n");
+            if (ticket.isResolved()) {
+                result.append("  Resolution Notes: ").append(ticket.getResolutionNotes()).append("\n");
+            }
+            current = current.next;
+        }
+        return result.toString();
+    }
+
+    public void addBookingTicket(String destination) {
+        BookingTicket newTicket = new BookingTicket(bookingTicketCounter++, destination);
+        Node<BookingTicket> newNode = new Node<>(newTicket);
+        if (bookingTickets == null) {
+            bookingTickets = newNode;
+        } else {
+            Node<BookingTicket> current = bookingTickets;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    public void addBookingTicket(BookingTicket ticket) {
+        Node<BookingTicket> newNode = new Node<>(ticket);
+        if (bookingTickets == null) {
+            bookingTickets = newNode;
+        } else {
+            Node<BookingTicket> current = bookingTickets;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    public String displayAvailableBookingTickets() {
+        Node<BookingTicket> current = bookingTickets;
+        StringBuilder result = new StringBuilder("Available Booking Tickets:\n");
+        boolean hasAvailable = false;
+        while (current != null) {
+            if (current.data.isAvailable()) {
+                result.append("🔹 Ticket ").append(current.data.getTicketId())
+                        .append(": ").append(current.data.getDestination()).append("\n");
+                hasAvailable = true;
+            }
+            current = current.next;
+        }
+        if (!hasAvailable) {
+            return "No booking tickets available.";
+        }
+        return result.toString();
+    }
+
+    public String bookBookingTicket(int ticketId, String passengerName, int passengerAge) {
+        Node<BookingTicket> current = bookingTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                if (current.data.book(passengerName, passengerAge)) {
+                    return "Booking Ticket " + ticketId + " to " + current.data.getDestination() +
+                            " booked for " + passengerName + ", Age: " + passengerAge + "!\n" +
+                            "Berth Allocated: " + current.data.getBerth();
+                } else {
+                    return "Booking Ticket " + ticketId + " is already booked.";
+                }
+            }
+            current = current.next;
+        }
+        return "Invalid Booking Ticket ID.";
+    }
+
+    public String cancelBookingTicket(int ticketId) {
+        Node<BookingTicket> current = bookingTickets;
+        while (current != null) {
+            if (current.data.getTicketId() == ticketId) {
+                if (!current.data.isAvailable()) {
+                    String details = "Booking Ticket was booked by " + current.data.getPassengerName() +
+                            ", Age: " + current.data.getPassengerAge() + ", Berth: " + current.data.getBerth() + ".";
+                    int confirm = JOptionPane.showConfirmDialog(null, details + "\nDo you want to cancel it?",
+                            "Confirm Cancellation", JOptionPane.YES_NO_OPTION);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        current.data.cancel();
+                        return "Booking Ticket " + ticketId + " canceled and is now available.";
+                    } else {
+                        return "Booking Ticket cancellation aborted.";
+                    }
+                } else {
+                    return "Booking Ticket " + ticketId + " is already available.";
+                }
+            }
+            current = current.next;
+        }
+        return "Invalid Booking Ticket ID.";
+    }
+
+    public void addUser(User user) {
+        Node<User> newNode = new Node<>(user);
+        if (users == null) {
+            users = newNode;
+        } else {
+            Node<User> current = users;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+    }
+
+    public boolean userLogin(String username, String password) {
+        Node<User> current = users;
+        while (current != null) {
+            if (current.data.getUsername().equals(username) && current.data.getPassword().equals(password)) {
+                return true;
+            }
+            current = current.next;
+        }
+        return false;
+    }
+
+    public boolean adminLogin(String password) {
+        return this.adminPassword.equals(password);
+    }
+}
+
+// Main class with Swing GUI
+public class Main {
+    private static CustomerSupportBookingSystem system = new CustomerSupportBookingSystem();
+    private static JFrame frame;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> createLoginScreen());
+    }
+
+    private static void createLoginScreen() {
+        frame = new JFrame("Customer Support and Ticket Booking System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 300);
+        frame.setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(4, 1, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JButton userLoginButton = new JButton("User Login");
+        JButton adminLoginButton = new JButton("Admin Login");
+        JButton exitButton = new JButton("Exit");
+
+        userLoginButton.addActionListener(e -> showUserLoginDialog());
+        adminLoginButton.addActionListener(e -> showAdminLoginDialog());
+        exitButton.addActionListener(e -> System.exit(0));
+
+        panel.add(new JLabel("Welcome to the Booking System", SwingConstants.CENTER));
+        panel.add(userLoginButton);
+        panel.add(adminLoginButton);
+        panel.add(exitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+
+    private static void showUserLoginDialog() {
+        JTextField usernameField = new JTextField(15);
+        JPasswordField passwordField = new JPasswordField(15);
+
+        JPanel loginPanel = new JPanel(new GridLayout(2, 2));
+        loginPanel.add(new JLabel("Username:"));
+        loginPanel.add(usernameField);
+        loginPanel.add(new JLabel("Password:"));
+        loginPanel.add(passwordField);
+
+        int result = JOptionPane.showConfirmDialog(frame, loginPanel, "User Login",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            if (system.userLogin(username, password)) {
+                showUserInterface();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Incorrect username or password. Access denied.",
+                        "Login Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private static void showAdminLoginDialog() {
+        JPasswordField passwordField = new JPasswordField(15);
+
+        JPanel loginPanel = new JPanel(new GridLayout(1, 2));
+        loginPanel.add(new JLabel("Admin Password:"));
+        loginPanel.add(passwordField);
+
+        int result = JOptionPane.showConfirmDialog(frame, loginPanel, "Admin Login",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            String password = new String(passwordField.getPassword());
+            if (system.adminLogin(password)) {
+                showAdminInterface();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Incorrect password. Access denied.",
+                        "Login Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private static void showUserInterface() {
+        frame.getContentPane().removeAll();
+        frame.setTitle("User Interface");
+
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JTextArea displayArea = new JTextArea(10, 30);
+        displayArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(displayArea);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 5, 5));
+        JButton reportProblemButton = new JButton("Report a Problem");
+        JButton viewTicketsButton = new JButton("View Available Booking Tickets");
+        JButton bookTicketButton = new JButton("Book a Booking Ticket");
+        JButton cancelTicketButton = new JButton("Cancel a Booking Ticket");
+        JButton logoutButton = new JButton("Logout");
+
+        reportProblemButton.addActionListener(e -> {
+            JTextField nameField = new JTextField(15);
+            JTextField issueField = new JTextField(15);
+            JPanel problemPanel = new JPanel(new GridLayout(2, 2));
+            problemPanel.add(new JLabel("Your Name:"));
+            problemPanel.add(nameField);
+            problemPanel.add(new JLabel("Describe Problem:"));
+            problemPanel.add(issueField);
+
+            int result = JOptionPane.showConfirmDialog(frame, problemPanel, "Report a Problem",
+                    JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                String customerName = nameField.getText();
+                String issueDescription = issueField.getText();
+                system.addSupportTicket(customerName, issueDescription);
+                displayArea.setText("Support Ticket submitted successfully and forwarded to admin.");
+            }
+        });
+
+        viewTicketsButton.addActionListener(e -> {
+            displayArea.setText(system.displayAvailableBookingTickets());
+        });
+
+        bookTicketButton.addActionListener(e -> {
+            displayArea.setText(system.displayAvailableBookingTickets());
+            JTextField ticketIdField = new JTextField(5);
+            JTextField nameField = new JTextField(15);
+            JTextField ageField = new JTextField(5);
+            JPanel bookPanel = new JPanel(new GridLayout(3, 2));
+            bookPanel.add(new JLabel("Ticket ID:"));
+            bookPanel.add(ticketIdField);
+            bookPanel.add(new JLabel("Your Name:"));
+            bookPanel.add(nameField);
+            bookPanel.add(new JLabel("Your Age:"));
+            bookPanel.add(ageField);
+
+            int result = JOptionPane.showConfirmDialog(frame, bookPanel, "Book a Ticket",
+                    JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    int ticketId = Integer.parseInt(ticketIdField.getText());
+                    String passengerName = nameField.getText();
+                    int passengerAge = Integer.parseInt(ageField.getText());
+                    displayArea.setText(system.bookBookingTicket(ticketId, passengerName, passengerAge));
+                } catch (NumberFormatException ex) {
+                    displayArea.setText("Please enter valid inputs.");
+                }
+            }
+        });
+
+        cancelTicketButton.addActionListener(e -> {
+            String ticketIdStr = JOptionPane.showInputDialog(frame, "Enter the Booking Ticket ID to cancel:");
+            if (ticketIdStr != null) {
+                try {
+                    int ticketId = Integer.parseInt(ticketIdStr);
+                    displayArea.setText(system.cancelBookingTicket(ticketId));
+                } catch (NumberFormatException ex) {
+                    displayArea.setText("Please enter a valid ticket ID.");
+                }
+            }
+        });
+
+        logoutButton.addActionListener(e -> {
+            frame.getContentPane().removeAll();
+            createLoginScreen();
+            frame.revalidate();
+            frame.repaint();
+        });
+
+        buttonPanel.add(reportProblemButton);
+        buttonPanel.add(viewTicketsButton);
+        buttonPanel.add(bookTicketButton);
+        buttonPanel.add(cancelTicketButton);
+        buttonPanel.add(logoutButton);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.EAST);
+
+        frame.add(panel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private static void showAdminInterface() {
+        frame.getContentPane().removeAll();
+        frame.setTitle("Admin Interface");
+
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JTextArea displayArea = new JTextArea(10, 30);
+        displayArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(displayArea);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(7, 1, 5, 5));
+        JButton viewPendingButton = new JButton("View Pending Support Tickets");
+        JButton viewAllButton = new JButton("View All Support Tickets");
+        JButton resolveTicketButton = new JButton("Resolve Support Ticket");
+        JButton viewTicketByIdButton = new JButton("View Support Ticket by ID");
+        JButton viewAvailableTicketsButton = new JButton("View Available Booking Tickets");
+        JButton addTicketButton = new JButton("Add New Booking Ticket");
+        JButton logoutButton = new JButton("Logout");
+
+        viewPendingButton.addActionListener(e -> {
+            displayArea.setText(system.displayUnresolvedSupportTickets());
+        });
+
+        viewAllButton.addActionListener(e -> {
+            displayArea.setText(system.displayAllSupportTickets());
+        });
+
+        resolveTicketButton.addActionListener(e -> {
+            JTextField ticketIdField = new JTextField(5);
+            JTextField notesField = new JTextField(15);
+            JPanel resolvePanel = new JPanel(new GridLayout(2, 2));
+            resolvePanel.add(new JLabel("Ticket ID:"));
+            resolvePanel.add(ticketIdField);
+            resolvePanel.add(new JLabel("Resolution Notes:"));
+            resolvePanel.add(notesField);
+
+            int result = JOptionPane.showConfirmDialog(frame, resolvePanel, "Resolve Support Ticket",
+                    JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    int ticketId = Integer.parseInt(ticketIdField.getText());
+                    String resolutionNotes = notesField.getText();
+                    system.resolveSupportTicket(ticketId, resolutionNotes);
+                    displayArea.setText("Support Ticket " + ticketId + " processed.");
+                } catch (NumberFormatException ex) {
+                    displayArea.setText("Please enter a valid ticket ID.");
+                }
+            }
+        });
+
+        viewTicketByIdButton.addActionListener(e -> {
+            String ticketIdStr = JOptionPane.showInputDialog(frame, "Enter Support Ticket ID to display:");
+            if (ticketIdStr != null) {
+                try {
+                    int ticketId = Integer.parseInt(ticketIdStr);
+                    displayArea.setText(system.displaySupportTicket(ticketId));
+                } catch (NumberFormatException ex) {
+                    displayArea.setText("Please enter a valid ticket ID.");
+                }
+            }
+        });
+
+        viewAvailableTicketsButton.addActionListener(e -> {
+            displayArea.setText(system.displayAvailableBookingTickets());
+        });
+
+        addTicketButton.addActionListener(e -> {
+            String destination = JOptionPane.showInputDialog(frame, "Enter destination for new booking ticket:");
+            if (destination != null && !destination.trim().isEmpty()) {
+                system.addBookingTicket(destination);
+                displayArea.setText("Booking Ticket added successfully.");
+            } else {
+                displayArea.setText("Destination cannot be empty.");
+            }
+        });
+
+        logoutButton.addActionListener(e -> {
+            frame.getContentPane().removeAll();
+            createLoginScreen();
+            frame.revalidate();
+            frame.repaint();
+        });
+
+        buttonPanel.add(viewPendingButton);
+        buttonPanel.add(viewAllButton);
+        buttonPanel.add(resolveTicketButton);
+        buttonPanel.add(viewTicketByIdButton);
+        buttonPanel.add(viewAvailableTicketsButton);
+        buttonPanel.add(addTicketButton);
+        buttonPanel.add(logoutButton);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.EAST);
+
+        frame.add(panel);
+        frame.revalidate();
+        frame.repaint();
+    }
+}
